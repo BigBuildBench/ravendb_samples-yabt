@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+
+    <RootNamespace>Raven.Yabt.Domain.Tests</RootNamespace>
+
+    <AssemblyName>Domain.Tests</AssemblyName>
+  </PropertyGroup>
+
+</Project>

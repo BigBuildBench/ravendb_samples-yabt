@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<IsPackable>false</IsPackable>
+
+		<RootNamespace>Raven.Yabt.Database.Migration.Tests</RootNamespace>
+
+		<AssemblyName>Database.Migration.Tests</AssemblyName>
+	</PropertyGroup>
+
+</Project>

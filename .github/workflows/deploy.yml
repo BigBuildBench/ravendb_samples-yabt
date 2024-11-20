@@ -1,0 +1,52 @@
+name: Deployment
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 8.0.100
+
+      - name: Build
+        run: dotnet build tools/Database.Migration/Database.Migration.csproj --configuration Release
+
+      - name: Run migration
+        run: dotnet tools/Database.Migration/bin/Release/net8.0/Database.Migration.dll
+        env:
+          Database__RavenDbUrls__0: ${{secrets.RavenDB_URL}}
+          Database__DbName: ${{secrets.RavenDB_DB_Name}}
+          Database__Certificate: ${{secrets.CERTIFICATE_PFX}}
+
+      - name: Set up Docker Build
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_AUTHTOKEN }}
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v2.1.0
+        with:
+          context: .
+          file: ./devops/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ravendbsamples/yabt:latest
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service --cluster ${{ secrets.AWS_ECS_CLUSTER }} --service ${{ secrets.AWS_ECS_SERVICE }} --force-new-deployment 2>&1 > /dev/null
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}           
